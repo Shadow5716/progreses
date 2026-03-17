@@ -1,0 +1,42 @@
+# --- Configuración de Conexión a base de datos ---
+includes/dbconnection.php
+includes/dbconnection2.php
+### En caso de que el dbconnection ya se esté siguiendo se debe ejecutar este comando
+# git rm --cached includes/dbconnection.php
+
+
+
+# --- Dependencias ---
+#vendor/
+
+# --- Configuración y Secretos (Importante) ---
+.env
+.env.local
+.env.*.local
+
+# --- Caché y Logs ---
+storage/*.key
+storage/framework/cache/data/*
+storage/framework/sessions/*
+storage/framework/views/*
+storage/logs/*.log
+var/cache/
+var/log/
+var/sessions/
+bootstrap/cache/
+
+# --- IDEs y Herramientas ---
+.idea/
+.vscode/
+.DS_Store
+*.sublime-project
+*.sublime-workspace
+
+# --- PHPUnit ---
+phpunit.xml
+.phpunit.result.cache
+
+# --- Otros ---
+node_modules/
+npm-debug.log
+/public/storage
