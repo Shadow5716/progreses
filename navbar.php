@@ -30,87 +30,119 @@
         background-color: #3e8a75 !important;
     }
 
+    /* Estilo específico para el botón de IPAUMA */
+    .btn-ipauma {
+        background-color: #28a745 !important;
+        color: white !important;
+        border-radius: 8px;
+        font-weight: 600;
+        border: none;
+        transition: all 0.3s ease;
+    }
+
+    .btn-ipauma:hover {
+        background-color: #218838 !important;
+        transform: translateY(-1px);
+        box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+    }
+
     .user-avatar-circle {
         width: 40px;
         height: 40px;
-        background-color: rgba(255, 255, 255, 0.2); /* Círculo semitransparente para que combine */
-        border: 2px solid rgba(255, 255, 255, 0.4);
-        border-radius: 50%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-weight: bold;
-        color: white;
     }
 </style>
 
-<nav class="navbar navbar-expand-lg navbar-dark navbar-custom shadow">
-    <div class="container-fluid px-5">
-<div class="d-flex align-items-center">
-    <a href="dashboard.php">
-        <img src="imagenes/alcaldia-maracaibo.png" alt="Logo Alcaldía" style="height: 50px; margin-right: 15px; cursor: pointer;">
-    </a>
-    
-    <div>
-        <h1 class="text-white mb-0 h4 fw-bold">Programa de Reportes de Gestion </h1>
-        <p class="text-white-50 mb-0 small">Dirección de Tecnología</p>
-    </div>
-</div>
-        
-<div class="ms-auto d-flex align-items-center">
-    <a href="nueva_solicitud.php" class="btn btn-solicitud me-4 shadow-sm">
-        <i class="bi bi-plus-lg me-2"></i>Nueva Solicitud
-    </a>
+<nav class="navbar navbar-expand-lg navbar-custom shadow-sm">
+    <div class="container-fluid px-4">
+        <a class="navbar-brand d-flex align-items-center" href="dashboard.php">
+            <img src="imagenes/alcaldia-maracaibo.png" alt="Logo" class="me-2" style="height: 45px; width: auto; filter: brightness(0) invert(1);">
+            <div class="d-flex flex-column line-height-1">
+                <span class="fw-bold h5 mb-0">Programa de Reportes de Gestión</span>
+                <small>Dirección de Tecnología</small>
+            </div>
+        </a>
 
-<div class="dropdown">
-    <button class="btn btn-outline-primary dropdown-toggle shadow-sm fw-bold" type="button" id="dropdownGraficas" data-bs-toggle="dropdown" aria-expanded="false" style="border-width: 2px; border-radius: 8px;">
-        <i class="bi bi-bar-chart-line-fill me-2"></i>Ver Estadísticas
-    </button>
-    <ul class="dropdown-menu dropdown-menu-end shadow border-0" aria-labelledby="dropdownGraficas" style="border-radius: 12px;">
-        <li>
-            <a class="dropdown-item py-2" href="estadistica.php">
-                <i class="bi bi-pie-chart me-2 text-primary"></i>Áreas
-            </a>
-        </li>
-        <li><hr class="dropdown-divider"></li>
-        <li>
-            <a class="dropdown-item py-2" href="estadistica_entes.php">
-                <i class="bi bi-building me-2 text-primary"></i>Direccion/Entes
-            </a>
-        </li>
-        <li>
-            <a class="dropdown-item py-2" href="estadistica_responsables.php">
-                <i class="bi bi-person-vcard me-2 text-primary"></i>Personal
-            </a>
-        </li>
-    </ul>
-</div>
+        <button class="navbar-toggler border-0 text-white" type="button" data-bs-toggle="collapse" data-bs-target="#navbarContent">
+            <i class="bi bi-list fs-2"></i>
+        </button>
 
-    <div class="vr mx-2 text-white opacity-25 d-none d-lg-block"></div>
+        <div class="collapse navbar-collapse" id="navbarContent">
+            <ul class="navbar-nav ms-auto align-items-center">
+                
+                <li class="nav-item me-2">
+                    <button class="btn btn-solicitud shadow-sm d-flex align-items-center" data-bs-toggle="modal" data-bs-target="#modalNuevaSolicitud">
+                        <i class="bi bi-plus-lg me-2"></i>
+                        <span>Nueva Solicitud</span>
+                    </button>
+                </li>
 
-<div class="dropdown text-white">
-    <a href="#" class="d-flex align-items-center text-white text-decoration-none dropdown-toggle" data-bs-toggle="dropdown">
-        <div class="user-avatar-circle me-2 shadow-sm d-flex align-items-center justify-content-center bg-light text-primary fw-bold" style="width: 35px; height: 35px; border-radius: 50%;">
-            <?php 
-                if (isset($_SESSION['AdminName'])) {
-                    // Extrae las iniciales del nombre real
-                    $partes = explode(" ", $_SESSION['AdminName']);
-                    $iniciales = substr($partes[0], 0, 1);
-                    if (count($partes) > 1) $iniciales .= substr($partes[1], 0, 1);
-                    echo strtoupper($iniciales);
-                } else {
-                    echo "AD";
-                }
-            ?>
+                <li class="nav-item me-2">
+                    <a href="ipauma_dashboard.php" class="btn btn-ipauma shadow-sm d-flex align-items-center">
+                        <i class="bi bi-bank2 me-2"></i>
+                        <span>Entrar a IPAUMA</span>
+                    </a>
+                </li>
+
+                <li class="nav-item dropdown me-2">
+                    <button class="btn btn-outline-light border-0 dropdown-toggle d-flex align-items-center opacity-75 hover-opacity-100" type="button" data-bs-toggle="dropdown">
+                        <i class="bi bi-bar-chart-line me-2"></i>Ver Estadisticas
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-end shadow-lg border-0 mt-2">
+                        <li>
+                            <a class="dropdown-item py-2" href="estadistica.php">
+                                <i class="bi bi-pie-chart me-2 text-primary"></i>General
+                            </a>
+                        </li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li>
+                            <a class="dropdown-item py-2" href="estadistica_responsables.php">
+                                <i class="bi bi-person-vcard me-2 text-primary"></i>Personal
+                            </a>
+                        </li>
+                    </ul>
+                </li>
+
+                <div class="vr mx-2 text-white opacity-25 d-none d-lg-block"></div>
+
+                <div class="dropdown text-white">
+                    <a href="#" class="d-flex align-items-center text-white text-decoration-none dropdown-toggle" data-bs-toggle="dropdown">
+                        <div class="user-avatar-circle me-2 shadow-sm d-flex align-items-center justify-content-center bg-light text-primary fw-bold" style="width: 35px; height: 35px; border-radius: 50%;">
+                            <?php 
+                                if (isset($_SESSION['AdminName'])) {
+                                    $partes = explode(" ", $_SESSION['AdminName']);
+                                    $iniciales = substr($partes[0], 0, 1);
+                                    if (count($partes) > 1) $iniciales .= substr($partes[1], 0, 1);
+                                    echo strtoupper($iniciales);
+                                } else {
+                                    echo "AD";
+                                }
+                            ?>
+                        </div>
+                        <span class="d-none d-sm-inline mx-1">
+                            <?php echo $_SESSION['AdminName'] ?? 'Administrador'; ?>
+                        </span>
+                    </a>
+                    <ul class="dropdown-menu dropdown-menu-end shadow-lg border-0 mt-2">
+                        <li>
+                            <a class="dropdown-item py-2" href="adminprofile.php">
+                                <i class="bi bi-person me-2"></i>Mi Perfil
+                            </a>
+                        </li>
+                        <li>
+                            <a class="dropdown-item py-2" href="change-password.php">
+                                <i class="bi bi-shield-lock me-2"></i>Seguridad
+                            </a>
+                        </li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li>
+                            <a class="dropdown-item py-2 text-danger" href="logout.php">
+                                <i class="bi bi-box-arrow-right me-2"></i>Cerrar Sesión
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+
+            </ul>
         </div>
-        <span class="d-none d-sm-inline mx-1">
-            <?php echo $_SESSION['AdminName'] ?? 'Administrador'; ?>
-        </span>
-    </a>
-    <ul class="dropdown-menu dropdown-menu-end dropdown-menu-dark shadow">
-        <li><a class="dropdown-item" href="logout.php"><i class="bi bi-box-arrow-right me-2"></i>Cerrar Sesión</a></li>
-    </ul>
-</div>
-</div>
     </div>
 </nav>
