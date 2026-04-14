@@ -1,21 +1,42 @@
 <?php
-// ipauma_nueva_solicitud.php
+session_start();
+require_once 'includes/dbconnection.php';
 
-// Conexión a BD
-$conn = new mysqli('localhost', 'root', '', 'tu_base_de_datos');
-$departamentos = $conn->query("SELECT * FROM ipauma_departamentos");
+$mensaje = '';
+
+try {
+    // Cargar Departamentos correctamente usando PDO
+    $stmtDept = $pdo->query("SELECT * FROM ipauma_departamentos ORDER BY nombre ASC");
+    $departamentos = $stmtDept->fetchAll(PDO::FETCH_ASSOC);
+} catch (PDOException $e) {
+    die("Error al cargar departamentos: Verifique que la tabla exista. " . $e->getMessage());
+}
 
 // Procesar guardado
 if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['guardar_ipauma'])) {
     $dep_id = intval($_POST['departamento_id']);
     $obj_id = intval($_POST['objetivo_id']);
     $act_id = intval($_POST['actividad_id']);
+    $parroquia = trim($_POST['parroquia']);
+    $oficio = trim($_POST['oficio']);
+    $descripcion = trim($_POST['descripcion']);
     
-    $insert = "INSERT INTO ipauma_solicitudes (departamento_id, objetivo_id, actividad_id) VALUES ($dep_id, $obj_id, $act_id)";
-    if($conn->query($insert)){
+    try {
+        $insert = "INSERT INTO ipauma_solicitudes (departamento_id, objetivo_id, actividad_id, parroquia, oficio, descripcion, estado, fecha) 
+                   VALUES (:dep, :obj, :act, :parroquia, :oficio, :desc, 'Pendiente', NOW())";
+        $stmt = $pdo->prepare($insert);
+        $stmt->execute([
+            ':dep' => $dep_id,
+            ':obj' => $obj_id,
+            ':act' => $act_id,
+            ':parroquia' => $parroquia,
+            ':oficio' => $oficio,
+            ':desc' => $descripcion
+        ]);
         echo "<script>alert('Solicitud IPAUMA registrada con éxito'); window.location.href='ipauma_dashboard.php';</script>";
-    } else {
-        echo "<script>alert('Error al guardar');</script>";
+        exit;
+    } catch (PDOException $e) {
+        $mensaje = "<div class='alert alert-danger'>Error al guardar: " . $e->getMessage() . "</div>";
     }
 }
 ?>
@@ -24,51 +45,73 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['guardar_ipauma'])) {
 <head>
     <meta charset="UTF-8">
     <title>Nueva Solicitud IPAUMA</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
-        .form-container { max-width: 600px; margin: 20px auto; font-family: Arial, sans-serif; }
-        .form-group { margin-bottom: 15px; }
-        label { display: block; font-weight: bold; margin-bottom: 5px; }
-        select, button { width: 100%; padding: 10px; border-radius: 5px; border: 1px solid #ccc; }
-        button { background-color: #28a745; color: white; border: none; cursor: pointer; font-size: 16px; margin-top: 10px;}
-        button:hover { background-color: #218838; }
+        body { background-color: #f4f7f6; }
+        .form-container { background: white; padding: 30px; border-radius: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); margin-top: 40px; }
     </style>
 </head>
 <body>
 
-<div class="form-container">
-    <h2>Nueva Solicitud IPAUMA</h2>
-    <form method="POST" action="">
-        
-        <div class="form-group">
-            <label>Departamento</label>
-            <select name="departamento_id" id="departamento_id" required>
-                <option value="">-- Seleccione un Departamento --</option>
-                <?php while($row = $departamentos->fetch_assoc()): ?>
-                    <option value="<?= $row['id'] ?>"><?= $row['nombre'] ?></option>
-                <?php endwhile; ?>
-            </select>
-        </div>
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-8 form-container">
+            <h3 class="mb-4 text-center fw-bold text-primary">Registrar Nuevo Reporte IPAUMA</h3>
+            <?= $mensaje ?>
+            
+            <form method="POST">
+                
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <label class="form-label fw-bold">Oficio N°</label>
+                        <input type="text" name="oficio" class="form-control" placeholder="Ej: 001-2026" required>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label fw-bold">Parroquia</label>
+                        <input type="text" name="parroquia" class="form-control" placeholder="Nombre de la parroquia" required>
+                    </div>
+                </div>
 
-        <div class="form-group">
-            <label>Objetivos Específicos</label>
-            <select name="objetivo_id" id="objetivo_id" required disabled>
-                <option value="">-- Primero seleccione un departamento --</option>
-            </select>
-        </div>
+                <div class="mb-3">
+                    <label class="form-label fw-bold">Departamento</label>
+                    <select id="departamento_id" name="departamento_id" class="form-select" required>
+                        <option value="">-- Seleccione un Departamento --</option>
+                        <?php foreach($departamentos as $row): ?>
+                            <option value="<?= $row['id'] ?>"><?= htmlspecialchars($row['nombre']) ?></option>
+                        <?php endforeach; ?>
+                    </select>
+                </div>
 
-        <div class="form-group">
-            <label>Actividad</label>
-            <select name="actividad_id" id="actividad_id" required disabled>
-                <option value="">-- Primero seleccione un objetivo --</option>
-            </select>
-        </div>
+                <div class="mb-3">
+                    <label class="form-label fw-bold">Objetivo</label>
+                    <select id="objetivo_id" name="objetivo_id" class="form-select" required disabled>
+                        <option value="">-- Primero seleccione un departamento --</option>
+                    </select>
+                </div>
 
-        <button type="submit" name="guardar_ipauma">Registrar Solicitud</button>
-        <a href="ipauma_dashboard.php" style="display:block; text-align:center; margin-top:15px; color:#007bff; text-decoration:none;">Volver al Dashboard</a>
-    </form>
+                <div class="mb-3">
+                    <label class="form-label fw-bold">Actividad</label>
+                    <select id="actividad_id" name="actividad_id" class="form-select" required disabled>
+                        <option value="">-- Primero seleccione un objetivo --</option>
+                    </select>
+                </div>
+
+                <div class="mb-4">
+                    <label class="form-label fw-bold">Descripción del Reporte</label>
+                    <textarea name="descripcion" class="form-control" rows="4" placeholder="Detalle la solicitud o el problema..." required></textarea>
+                </div>
+
+                <div class="d-flex justify-content-between">
+                    <a href="ipauma_dashboard.php" class="btn btn-secondary">Cancelar</a>
+                    <button type="submit" name="guardar_ipauma" class="btn btn-success fw-bold px-4">Guardar Reporte</button>
+                </div>
+            </form>
+        </div>
+    </div>
 </div>
 
 <script>
+// El código AJAX original mantenido intacto pero mejorado para Bootstrap
 document.getElementById('departamento_id').addEventListener('change', function() {
     let dep_id = this.value;
     let objSelect = document.getElementById('objetivo_id');
@@ -124,6 +167,5 @@ document.getElementById('objetivo_id').addEventListener('change', function() {
     }
 });
 </script>
-
 </body>
 </html>
