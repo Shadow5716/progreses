@@ -83,26 +83,26 @@
                     </a>
                 </li>
 
-               <div class="dropdown">
-    <button class="btn btn-outline-primary dropdown-toggle shadow-sm fw-bold" type="button" id="dropdownGraficas" data-bs-toggle="dropdown" aria-expanded="false" style="border-width: 2px; border-radius: 8px;">
-        <i class="bi bi-bar-chart-line-fill me-2"></i>Ver Estadísticas
-    </button>
-    <ul class="dropdown-menu dropdown-menu-end shadow border-0" aria-labelledby="dropdownGraficas" style="border-radius: 12px;">
-        <li>
-            <a class="dropdown-item py-2" href="estadistica.php">
-                <i class="bi bi-pie-chart me-2 text-primary"></i>Áreas
-            </a>
-        </li>
-        <li><hr class="dropdown-divider"></li>
-        <li>
-            <a class="dropdown-item py-2" href="estadistica_entes.php">
-                <i class="bi bi-building me-2 text-primary"></i>Direccion/Entes
-            </a>
-        </li>
-        <li>
-            <a class="dropdown-item py-2" href="estadistica_responsables.php">
-                <i class="bi bi-person-vcard me-2 text-primary"></i>Personal
-            </a>
+                <li class="nav-item dropdown me-2">
+                    <button class="btn btn-outline-light border-0 dropdown-toggle d-flex align-items-center opacity-75 hover-opacity-100" type="button" data-bs-toggle="dropdown">
+                        <i class="bi bi-bar-chart-line me-2"></i>Ver Estadisticas
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-end shadow-lg border-0 mt-2">
+                        <li>
+                            <a class="dropdown-item py-2" href="estadistica.php">
+                                <i class="bi bi-pie-chart me-2 text-primary"></i>Áreas
+                            </a>
+                        </li>
+                        <li>
+                            <a class="dropdown-item py-2" href="estadistica.php">
+                                <i class="bi bi-pie-chart me-2 text-primary"></i>General
+                            </a>
+                        </li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li>
+                            <a class="dropdown-item py-2" href="estadistica_responsables.php">
+                                <i class="bi bi-person-vcard me-2 text-primary"></i>Personal
+                            </a>
                         </li>
                     </ul>
                 </li>
