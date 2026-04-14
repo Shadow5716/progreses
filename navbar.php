@@ -83,7 +83,7 @@
                     </a>
                 </li>
 
-               div class="dropdown">
+               <div class="dropdown">
     <button class="btn btn-outline-primary dropdown-toggle shadow-sm fw-bold" type="button" id="dropdownGraficas" data-bs-toggle="dropdown" aria-expanded="false" style="border-width: 2px; border-radius: 8px;">
         <i class="bi bi-bar-chart-line-fill me-2"></i>Ver Estadísticas
     </button>
