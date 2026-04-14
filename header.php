@@ -44,7 +44,7 @@ $miRango = $adminActual['Rango'] ?? '';
                     <a class="nav-link active" href="dashboard.php">Dashboard</a>
                 </li>
 
-                                <li class="nav-item dropdown">
+                <li class="nav-item dropdown">
                     <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
                         Expedientes
                     </a>
@@ -57,31 +57,24 @@ $miRango = $adminActual['Rango'] ?? '';
                     </ul>
                 </li>
 
-
                 <li class="nav-item dropdown">
                     <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
                         Clientes
                     </a>
-<ul class="dropdown-menu dropdown-menu-dark dropdown-menu-end">
-    <li>
-        <a class="dropdown-item" href="<?php echo ($miRango == 'Operador') ? 'vista_clientes.php' : 'directorio_clientes.php'; ?>">
-            <i class="bi bi-person-lines-fill me-2"></i> Directorio
-        </a>
-    </li>
+                    <ul class="dropdown-menu dropdown-menu-dark dropdown-menu-end">
+                        <li>
+                            <a class="dropdown-item" href="<?php echo ($miRango == 'Operador') ? 'vista_clientes.php' : 'directorio_clientes.php'; ?>">
+                                <i class="bi bi-person-lines-fill me-2"></i> Directorio
+                            </a>
+                        </li>
 
-    <?php if ($miRango == 'Administrador' || $miRango == 'Encargado'): ?>
-        <li>
-            <a class="dropdown-item" href="nuevo_cliente.php">
-                <i class="bi bi-plus-circle me-2"></i> Registrar
-            </a>
-        </li>
-    <?php endif; ?>
-</ul>
-                </li>
-                    
-
-                        
-                    
+                        <?php if ($miRango == 'Administrador' || $miRango == 'Encargado'): ?>
+                            <li>
+                                <a class="dropdown-item" href="nuevo_cliente.php">
+                                    <i class="bi bi-plus-circle me-2"></i> Registrar
+                                </a>
+                            </li>
+                        <?php endif; ?>
                     </ul>
                 </li>
 
@@ -89,65 +82,51 @@ $miRango = $adminActual['Rango'] ?? '';
                     <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
                         Finanzas
                     </a>
-                   <ul class="dropdown-menu dropdown-menu-dark dropdown-menu-end">
-        <li><a class="dropdown-item" href="recibos.php">Recibos de Pago</a></li>
+                    <ul class="dropdown-menu dropdown-menu-dark dropdown-menu-end">
+                        <li><a class="dropdown-item" href="recibos.php">Recibos de Pago</a></li>
 
+                        <?php 
+                        $adminid = $_SESSION['adminid'];
+                        $stmtRango = $pdo->prepare("SELECT Rango FROM tbladmin WHERE ID = ?");
+                        $stmtRango->execute([$adminid]);
+                        $adminActual = $stmtRango->fetch(PDO::FETCH_ASSOC);
 
-   
-   
-   <?php 
-// 1. Consultamos el rango del usuario actual usando PDO
-$adminid = $_SESSION['adminid'];
-$stmtRango = $pdo->prepare("SELECT Rango FROM tbladmin WHERE ID = ?");
-$stmtRango->execute([$adminid]);
-$adminActual = $stmtRango->fetch(PDO::FETCH_ASSOC);
-
-// 2. Verificamos si tiene permisos para gestionar cuentas
-if(isset($adminActual['Rango']) && ($adminActual['Rango'] == "Administrador" || $adminActual['Rango'] == "Encargado")):?>
-
-        <li><a class="dropdown-item text-info" href="seleccionar_expediente_cuota.php"><i class="fa fa-plus-circle me-1"></i> Asignar Cuotas</a></li>
-
-
- 
-<?php endif; ?>
-   
-    </ul>
+                        if(isset($adminActual['Rango']) && ($adminActual['Rango'] == "Administrador" || $adminActual['Rango'] == "Encargado")):?>
+                            <li><a class="dropdown-item text-info" href="seleccionar_expediente_cuota.php"><i class="fa fa-plus-circle me-1"></i> Asignar Cuotas</a></li>
+                        <?php endif; ?>
+                    </ul>
                 </li>
 
+                <li class="nav-item">
+                    <a class="nav-link fw-bold text-success" href="ipauma_dashboard.php">
+                        <i class="bi bi-bank2 me-1"></i> IPAUMA
+                    </a>
+                </li>
                 <li class="nav-item dropdown ms-lg-3">
                     <a class="nav-link dropdown-toggle d-flex align-items-center" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
                         <img src="https://ui-avatars.com/api/?name=<?php echo urlencode($nombreMostrar); ?>&background=198754&color=fff" class="rounded-circle me-2" width="28">
                         <?php echo htmlspecialchars($nombreMostrar); ?>
                     </a>
                     <ul class="dropdown-menu dropdown-menu-dark dropdown-menu-end shadow-lg">
-
                         <li><a class="dropdown-item"><i class="fa fa-user me-2"></i>Conectado como: <br><strong><?php echo $_SESSION['usuario']; ?></a></li>
                         <li><a class="dropdown-item" href="perfil.php"><i class="fa fa-user me-2"></i> Mi Perfil</a></li>
                         <li><hr class="dropdown-divider border-secondary"></li>
                         <li><a class="dropdown-item text-warning" href="logout.php"><i class="fa fa-sign-out me-2"></i> Salir del Sistema</a></li>
-<?php 
-// 1. Consultamos el rango del usuario actual usando PDO
-$adminid = $_SESSION['adminid'];
-$stmtRango = $pdo->prepare("SELECT Rango FROM tbladmin WHERE ID = ?");
-$stmtRango->execute([$adminid]);
-$adminActual = $stmtRango->fetch(PDO::FETCH_ASSOC);
+                        
+                        <?php 
+                        $adminid = $_SESSION['adminid'];
+                        $stmtRango = $pdo->prepare("SELECT Rango FROM tbladmin WHERE ID = ?");
+                        $stmtRango->execute([$adminid]);
+                        $adminActual = $stmtRango->fetch(PDO::FETCH_ASSOC);
 
-// 2. Verificamos si tiene permisos para gestionar cuentas
-if(isset($adminActual['Rango']) && $adminActual['Rango'] == "Administrador"): 
-?>
-
-                <a class="dropdown-item" href="adminagregar.php">
-                    <i class="fa fa-user-plus me-2"></i> Crear Administrador
-                </a>
-            </li>
-
- 
-<?php endif; ?>
-
-
-
-
-
+                        if(isset($adminActual['Rango']) && $adminActual['Rango'] == "Administrador"): 
+                        ?>
+                            <li>
+                                <a class="dropdown-item" href="adminagregar.php">
+                                    <i class="fa fa-user-plus me-2"></i> Crear Administrador
+                                </a>
+                            </li>
+                        <?php endif; ?>
                     </ul>
                 </li>
             </ul>
