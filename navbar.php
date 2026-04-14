@@ -69,12 +69,10 @@
         <div class="collapse navbar-collapse" id="navbarContent">
             <ul class="navbar-nav ms-auto align-items-center">
                 
-                <li class="nav-item me-2">
-                    <button class="btn btn-solicitud shadow-sm d-flex align-items-center" data-bs-toggle="modal" data-bs-target="#modalNuevaSolicitud">
-                        <i class="bi bi-plus-lg me-2"></i>
-                        <span>Nueva Solicitud</span>
-                    </button>
-                </li>
+               <div class="ms-auto d-flex align-items-center">
+                    <a href="nueva_solicitud.php" class="btn btn-solicitud me-4 shadow-sm">
+                        <i class="bi bi-plus-lg me-2"></i>Nueva Solicitud
+                    </a>
 
                 <li class="nav-item me-2">
                     <a href="ipauma_dashboard.php" class="btn btn-ipauma shadow-sm d-flex align-items-center">

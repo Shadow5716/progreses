@@ -57,10 +57,10 @@ try {
             padding: 0.8rem 1rem;
         }
         .stat-card { border-radius: 10px; color: white; padding: 20px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
-        .card-total { background-color: #6f42c1; }
-        .card-pendiente { background-color: #dc3545; }
-        .card-proceso { background-color: #ffc107; color: #000; }
-        .card-resuelto { background-color: #198754; }
+        .card-total { background-color: #ffffff; color: #000; }
+        .card-pendiente { background-color: #ffffff; color: #000; }
+        .card-proceso { background-color: #ffffff; color: #000; }
+        .card-resuelto { background-color: #ffffff; color: #000; }
         .table-container { background: white; padding: 20px; border-radius: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
     </style>
 </head>
