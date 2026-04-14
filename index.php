@@ -113,7 +113,11 @@ if (isset($_SESSION['autentificado']) && $_SESSION['autentificado'] == true) {
     </style>
 </head>
 <body>
-
+<div style="position: absolute; top: 15px; left: 15px; z-index: 9999;">
+    <a href="ipauma_dashboard.php" style="background-color: #28a745; color: white; padding: 10px 15px; text-decoration: none; border-radius: 5px; font-weight: bold; box-shadow: 0px 2px 5px rgba(0,0,0,0.2);">
+        🏛️ Entrar a IPAUMA
+    </a>
+</div>
     <div class="login-container">
         <div class="card card-login">
             <div class="card-header-login">
