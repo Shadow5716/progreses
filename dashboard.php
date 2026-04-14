@@ -175,13 +175,7 @@ if (!empty($estatus_filtro)) $query_string .= "&estatus=" . urlencode($estatus_f
     </style>
 </head>
 <body>
-<div class="d-flex justify-content-between align-items-center mb-3">
-    <div>
-        </div>
-    <a href="ipauma_dashboard.php" class="btn btn-success fw-bold shadow-sm">
-        <i class="bi bi-arrow-right-short fs-5"></i> ENTRAR AL MÓDULO IPAUMA
-    </a>
-</div>
+
     <?php include 'navbar.php'; ?>
 
     <div class="container-fluid mt-5 px-5">
