@@ -55,7 +55,7 @@
 <nav class="navbar navbar-expand-lg navbar-custom shadow-sm">
     <div class="container-fluid px-4">
         <a class="navbar-brand d-flex align-items-center" href="dashboard.php">
-            <img src="imagenes/alcaldia-maracaibo.png" alt="Logo" class="me-2" style="height: 45px; width: auto; filter: brightness(0) invert(1);">
+            <img src="imagenes/alcaldia-maracaibo.png" alt="Logo" class="me-2" style="height: 45px; width: auto;">
             <div class="d-flex flex-column line-height-1">
                 <span class="fw-bold h5 mb-0">Programa de Reportes de Gestión</span>
                 <small>Dirección de Tecnología</small>
