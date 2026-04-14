@@ -175,9 +175,11 @@ if (!empty($estatus_filtro)) $query_string .= "&estatus=" . urlencode($estatus_f
     </style>
 </head>
 <body>
-<div style="position: absolute; top: 15px; left: 15px; z-index: 9999;">
-    <a href="ipauma_dashboard.php" style="background-color: #28a745; color: white; padding: 10px 15px; text-decoration: none; border-radius: 5px; font-weight: bold; box-shadow: 0px 2px 5px rgba(0,0,0,0.2);">
-        🏛️ Entrar a IPAUMA
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <div>
+        </div>
+    <a href="ipauma_dashboard.php" class="btn btn-success fw-bold shadow-sm">
+        <i class="bi bi-arrow-right-short fs-5"></i> ENTRAR AL MÓDULO IPAUMA
     </a>
 </div>
     <?php include 'navbar.php'; ?>
