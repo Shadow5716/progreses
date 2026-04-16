@@ -12,8 +12,7 @@ $where = "1=1";
 $params = [];
 
 // Verificar si se exportan solo seleccionados o todos
-if (isset($_POST['ids_seleccionados']) && !empty($_POST['ids_seleccionados'])) {
-    // Escapar los IDs para seguridad
+if (isset($_POST['ids_seleccionados']) && !empty($_POST['ids_seleccionados']) && $_POST['ids_seleccionados'] !== 'ALL') {
     $ids = explode(',', $_POST['ids_seleccionados']);
     $inQuery = implode(',', array_fill(0, count($ids), '?'));
     $where = "s.id IN ($inQuery)";
@@ -32,7 +31,11 @@ try {
     $stmt->execute($params);
     $datos = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-    // Imprimir Tabla HTML para que Excel la interprete
+    // ESTO ES LO QUE SOLUCIONA EL ERROR 4: Forza la codificación UTF-8 en Excel
+    echo "\xEF\xBB\xBF"; 
+    echo '<meta charset="utf-8">';
+    
+    // Imprimir Tabla HTML
     echo '<table border="1">';
     echo '<tr style="background-color:#164377; color:white;">';
     echo '<th>N° Reporte</th>';
@@ -48,21 +51,20 @@ try {
 
     foreach ($datos as $row) {
         echo '<tr>';
-        echo '<td>' . htmlspecialchars($row['id']) . '</td>';
+        echo '<td>' . htmlspecialchars($row['id'] ?? '') . '</td>';
         echo '<td>' . date('d/m/Y h:i A', strtotime($row['fecha'])) . '</td>';
-        echo '<td>' . htmlspecialchars($row['depto']) . '</td>';
-        echo '<td>' . htmlspecialchars($row['obj']) . '</td>';
-        echo '<td>' . htmlspecialchars($row['act']) . '</td>';
-        echo '<td>' . htmlspecialchars($row['oficio']) . '</td>';
-        echo '<td>' . htmlspecialchars($row['parroquia']) . '</td>';
-        echo '<td>' . htmlspecialchars($row['estado']) . '</td>';
-        echo '<td>' . htmlspecialchars($row['descripcion']) . '</td>';
+        echo '<td>' . htmlspecialchars($row['depto'] ?? '') . '</td>';
+        echo '<td>' . htmlspecialchars($row['obj'] ?? '') . '</td>';
+        echo '<td>' . htmlspecialchars($row['act'] ?? '') . '</td>';
+        echo '<td>' . htmlspecialchars($row['oficio'] ?? '') . '</td>';
+        echo '<td>' . htmlspecialchars($row['parroquia'] ?? '') . '</td>';
+        echo '<td>' . htmlspecialchars($row['estado'] ?? '') . '</td>';
+        echo '<td>' . htmlspecialchars($row['descripcion'] ?? '') . '</td>';
         echo '</tr>';
     }
     echo '</table>';
 
-} catch (PDOException $e) {
-    echo "Error al exportar los datos.";
+} catch (Exception $e) {
+    echo "Error al exportar: " . $e->getMessage();
 }
-exit;
 ?>

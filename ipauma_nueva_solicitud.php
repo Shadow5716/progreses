@@ -87,6 +87,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['guardar_ipauma'])) {
                     <select id="objetivo_id" name="objetivo_id" class="form-select" required disabled>
                         <option value="">-- Primero seleccione un departamento --</option>
                     </select>
+                    <small class="text-muted"><i class="bi bi-info-circle me-1"></i>Las opciones se habilitarán al elegir el Departamento.</small>
                 </div>
 
                 <div class="mb-3">
@@ -94,6 +95,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['guardar_ipauma'])) {
                     <select id="actividad_id" name="actividad_id" class="form-select" required disabled>
                         <option value="">-- Primero seleccione un objetivo --</option>
                     </select>
+                    <small class="text-muted"><i class="bi bi-info-circle me-1"></i>Las opciones se habilitarán al elegir el Objetivo.</small>
                 </div>
 
                 <div class="mb-4">
