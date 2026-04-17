@@ -55,7 +55,7 @@ if (isset($_SESSION['autentificado']) && $_SESSION['autentificado'] == true) {
             border: none;
             border-radius: 15px;
             overflow: hidden;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
             background: rgba(255, 255, 255, 0.98);
         }
 

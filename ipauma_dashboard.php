@@ -11,8 +11,15 @@ $where_sql = "1=1";
 $params = [];
 
 if ($busqueda != '') {
-    $where_sql .= " AND (s.id LIKE :busqueda OR s.descripcion LIKE :busqueda OR s.oficio LIKE :busqueda OR d.nombre LIKE :busqueda OR o.descripcion LIKE :busqueda OR a.descripcion LIKE :busqueda)";
-    $params[':busqueda'] = "%$busqueda%";
+    // CORRECCIÓN: Usar variables de parámetro separadas para evitar el error SQLSTATE[HY093] de PDO
+    $where_sql .= " AND (s.id LIKE :b1 OR s.fecha LIKE :b2 OR d.nombre LIKE :b3 OR o.descripcion LIKE :b4 OR a.descripcion LIKE :b5 OR s.parroquia LIKE :b6)";
+    $termino = "%$busqueda%";
+    $params[':b1'] = $termino;
+    $params[':b2'] = $termino;
+    $params[':b3'] = $termino;
+    $params[':b4'] = $termino;
+    $params[':b5'] = $termino;
+    $params[':b6'] = $termino;
 }
 if ($estado_filtro != '') {
     $where_sql .= " AND s.estado = :estado";
@@ -47,7 +54,7 @@ try {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Historial de Reportes IPAUMA</title>
+    <title>Historial de Reportes IPAUPMA</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
     <style>
@@ -62,6 +69,12 @@ try {
         .card-proceso { background-color: #ffffff; color: #000; }
         .card-resuelto { background-color: #ffffff; color: #000; }
         .table-container { background: white; padding: 20px; border-radius: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        /* Nuevos estilos para forzar el ajuste de texto hacia abajo */
+        .wrap-text {
+            white-space: normal !important;
+            word-wrap: break-word;
+            text-align: left;
+        }
     </style>
 </head>
 <body>
@@ -71,8 +84,8 @@ try {
         <a class="navbar-brand text-white d-flex align-items-center" href="ipauma_dashboard.php">
             <img src="imagenes/alcaldia-maracaibo.png" alt="Logo" class="me-2" style="height: 45px;">
             <div class="d-flex flex-column line-height-1">
-                <span class="fw-bold h5 mb-0 text-white">IPAUMA</span>
-                <small class="text-white-50">Dirección de Tecnología</small>
+                <span class="fw-bold h5 mb-0 text-white">Programa de Reportes de Gestión</span>
+                <small class="text-white-50">IPAUPMA</small>
             </div>
         </a>
         
@@ -89,6 +102,7 @@ try {
                         <li><a class="dropdown-item" href="ipauma_estadisticas.php?tipo=departamentos"><i class="bi bi-building me-2 text-primary"></i> Departamentos</a></li>
                         <li><a class="dropdown-item" href="ipauma_estadisticas.php?tipo=objetivos"><i class="bi bi-bullseye me-2 text-danger"></i> Objetivos</a></li>
                         <li><a class="dropdown-item" href="ipauma_estadisticas.php?tipo=actividades"><i class="bi bi-list-task me-2 text-success"></i> Actividades</a></li>
+                        <li><a class="dropdown-item" href="ipauma_estadisticas.php?tipo=parroquias"><i class="bi bi-map me-2 text-info"></i> Parroquias</a></li>
                     </ul>
                 </li>
             </ul>
@@ -97,7 +111,7 @@ try {
 </nav>
 
 <div class="container-fluid px-4">
-    <h2 class="mb-4 fw-bold">Historial de Reportes IPAUMA</h2>
+    <h2 class="mb-4 fw-bold">Historial de Reportes IPAUPMA</h2>
 
     <div class="row mb-4">
         <div class="col-md-3">
@@ -149,7 +163,7 @@ try {
     <div class="card shadow-sm border-0 mb-4 p-3">
         <form method="GET" action="ipauma_dashboard.php" class="row g-2 align-items-center">
             <div class="col-md-7">
-                <input type="text" name="busqueda" class="form-control" placeholder="Buscar por N°, Descripción, Oficio, Departamento..." value="<?= htmlspecialchars($busqueda) ?>">
+                <input type="text" name="busqueda" class="form-control" placeholder="Buscar por N°, Descripción, Departamento..." value="<?= htmlspecialchars($busqueda) ?>">
             </div>
             <div class="col-md-3">
                 <select name="estado" class="form-select">
@@ -166,8 +180,8 @@ try {
     </div>
 
     <div class="table-container table-responsive">
-        <table class="table table-hover table-bordered align-middle text-center text-nowrap">
-            <thead class="table-dark">
+        <table class="table table-hover table-bordered align-middle text-center">
+            <thead class="table-dark text-nowrap">
                 <tr>
                     <th><input type="checkbox" id="selectAll" class="form-check-input" onclick="toggleSelectAll()"></th>
                     <th>N°</th>
@@ -175,8 +189,8 @@ try {
                     <th>Departamento</th>
                     <th>Objetivo</th>
                     <th>Actividad</th>
-                    <th>Oficio</th>
                     <th>Parroquia</th>
+                    <th>Descripción</th>
                     <th>Estado</th>
                     <th>Acciones</th>
                 </tr>
@@ -186,20 +200,23 @@ try {
                     <?php foreach ($reportes as $row): ?>
                     <tr>
                         <td><input type="checkbox" class="form-check-input row-checkbox" value="<?= $row['id'] ?>"></td>
-                        <td class="fw-bold text-primary">#<?= $row['id'] ?></td>
-                        <td><?= date('d/m/Y h:i A', strtotime($row['fecha'])) ?></td>
-                        <td title="<?= htmlspecialchars($row['depto_nombre']) ?>"><?= htmlspecialchars(substr($row['depto_nombre'], 0, 20)) ?>...</td>
-                        <td title="<?= htmlspecialchars($row['obj_desc']) ?>"><?= htmlspecialchars(substr($row['obj_desc'], 0, 20)) ?>...</td>
-                        <td title="<?= htmlspecialchars($row['act_desc']) ?>"><?= htmlspecialchars(substr($row['act_desc'], 0, 20)) ?>...</td>
-                        <td><?= htmlspecialchars($row['oficio']) ?></td>
-                        <td><?= htmlspecialchars($row['parroquia']) ?></td>
-                        <td>
+                        <td class="fw-bold text-primary text-nowrap">#<?= $row['id'] ?></td>
+                        <td class="text-nowrap"><?= date('d/m/Y h:i A', strtotime($row['fecha'])) ?></td>
+                        
+                        <td class="wrap-text" style="min-width: 200px;"><?= htmlspecialchars($row['depto_nombre']) ?></td>
+                        <td class="wrap-text" style="min-width: 250px;"><?= htmlspecialchars($row['obj_desc']) ?></td>
+                        <td class="wrap-text" style="min-width: 250px;"><?= htmlspecialchars($row['act_desc']) ?></td>
+                        
+                        <td class="wrap-text"><?= htmlspecialchars($row['parroquia']) ?></td>
+                        <td class="wrap-text" style="min-width: 250px;"><?= htmlspecialchars($row['descripcion']) ?></td>
+                        
+                        <td class="text-nowrap">
                             <?php 
                                 $badgeColor = $row['estado'] == 'Resuelto' ? 'bg-success' : ($row['estado'] == 'En Proceso' ? 'bg-warning text-dark' : 'bg-danger');
                             ?>
                             <span class="badge <?= $badgeColor ?>"><?= htmlspecialchars($row['estado']) ?></span>
                         </td>
-                        <td>
+                        <td class="text-nowrap">
                             <div class="dropdown">
                                 <button class="btn btn-sm btn-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown">
                                     Opciones
@@ -223,14 +240,12 @@ try {
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script>
-    // Función para seleccionar todos los checkboxes
     function toggleSelectAll() {
         const selectAll = document.getElementById('selectAll');
         const checkboxes = document.querySelectorAll('.row-checkbox');
         checkboxes.forEach(cb => cb.checked = selectAll.checked);
     }
 
-    // Función para recolectar IDs seleccionados y enviar a Excel
     function exportarSeleccionados() {
         const checkboxes = document.querySelectorAll('.row-checkbox:checked');
         if (checkboxes.length === 0) {
