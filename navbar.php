@@ -70,7 +70,7 @@
             <ul class="navbar-nav ms-auto align-items-center">
                 
                <div class="ms-auto d-flex align-items-center">
-                    <a href="nueva_solicitud.php" class="btn btn-solicitud me-4 shadow-sm">
+                    <a href="nueva_solicitud.php" class="btn btn-solicitud me-2 shadow-sm">
                         <i class="bi bi-plus-lg me-2"></i>Nueva Solicitud
                     </a>
 
