@@ -77,7 +77,7 @@
                 <li class="nav-item me-2">
                     <a href="ipauma_dashboard.php" class="btn btn-ipauma shadow-sm d-flex align-items-center">
                         <i class="bi bi-bank2 me-2"></i>
-                        <span>Entrar a IPAUMA</span>
+                        <span>Entrar a IPAUPMA</span>
                     </a>
                 </li>
 
