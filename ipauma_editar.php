@@ -13,6 +13,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['actualizar_ipauma'])) 
     $parroquia = trim($_POST['parroquia']);
     $descripcion = trim($_POST['descripcion']);
     $estado = trim($_POST['estado']);
+    $fecha_ejecucion = !empty($_POST['fecha_ejecucion']) ? $_POST['fecha_ejecucion'] : null;
     $departamento_id = intval($_POST['departamento_id']);
     $objetivo_id = intval($_POST['objetivo_id']);
     $actividad_id = intval($_POST['actividad_id']);
@@ -22,6 +23,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['actualizar_ipauma'])) 
                     parroquia = :parroquia, 
                     descripcion = :desc, 
                     estado = :estado,
+                    fecha_ejecucion = :fecha_ejecucion,
                     departamento_id = :dept_id,
                     objetivo_id = :obj_id,
                     actividad_id = :act_id
@@ -31,6 +33,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['actualizar_ipauma'])) 
             ':parroquia' => $parroquia,
             ':desc' => $descripcion,
             ':estado' => $estado,
+            ':fecha_ejecucion' => $fecha_ejecucion,
             ':dept_id' => $departamento_id,
             ':obj_id' => $objetivo_id,
             ':act_id' => $actividad_id,
@@ -101,7 +104,7 @@ try {
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
     <style>
         body { background: linear-gradient(90deg, rgba(210, 0, 90, 1) 0%, rgba(22, 67, 119, 1) 100%) !important; min-height: 100vh; padding: 20px; }
-        .container-main { background: white; padding: 30px; border-radius: 10px; box-shadow: 0 4px 15px rgba(0,0,0,0.2); max-width: 800px; margin: 40px auto; }
+        .container-main { background: white; padding: 30px; border-radius: 10px; box-shadow: 0 4px 15px rgba(0,0,0,0.2); max-width: 900px; margin: 40px auto; }
         h2 { color: #164377; font-weight: bold; margin-bottom: 25px; border-bottom: 3px solid #d2005a; padding-bottom: 10px; }
         .form-label { font-weight: bold; color: #444; }
     </style>
@@ -113,15 +116,19 @@ try {
     
     <form method="POST">
         <div class="row">
-            <div class="col-md-6 mb-3">
+            <div class="col-md-4 mb-3">
                 <label class="form-label">Estado del Reporte</label>
                 <select name="estado" class="form-select" required>
-                    <option value="Pendiente" <?= ($reporte['estado'] == 'Pendiente') ? 'selected' : '' ?>>Pendiente</option>
-                    <option value="En Proceso" <?= ($reporte['estado'] == 'En Proceso') ? 'selected' : '' ?>>En Proceso</option>
-                    <option value="Resuelto" <?= ($reporte['estado'] == 'Resuelto') ? 'selected' : '' ?>>Resuelto</option>
+                    <option value="Pendiente" <?= ($reporte['estado'] == 'Pendiente') ? 'selected' : '' ?>>🔴 Pendiente</option>
+                    <option value="En Proceso" <?= ($reporte['estado'] == 'En Proceso') ? 'selected' : '' ?>>🟡 En Proceso</option>
+                    <option value="Resuelto" <?= ($reporte['estado'] == 'Resuelto') ? 'selected' : '' ?>>🟢 Resuelto</option>
                 </select>
             </div>
-            <div class="col-md-6 mb-3">
+            <div class="col-md-4 mb-3">
+                <label class="form-label">Fecha de Ejecución</label>
+                <input type="date" name="fecha_ejecucion" class="form-control" value="<?= htmlspecialchars($reporte['fecha_ejecucion']) ?>" required>
+            </div>
+            <div class="col-md-4 mb-3">
                 <label class="form-label">Parroquia</label>
                 <select name="parroquia" class="form-select" required>
                     <?php foreach ($parroquias as $p): ?>

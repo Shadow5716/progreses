@@ -186,6 +186,7 @@ try {
                     <th><input type="checkbox" id="selectAll" class="form-check-input" onclick="toggleSelectAll()"></th>
                     <th>N°</th>
                     <th>Fecha</th>
+                    <th>Fecha de Ejecución</th>
                     <th>Departamento</th>
                     <th>Objetivo</th>
                     <th>Actividad</th>
@@ -203,6 +204,10 @@ try {
                         <td class="fw-bold text-primary text-nowrap">#<?= $row['id'] ?></td>
                         <td class="text-nowrap"><?= date('d/m/Y h:i A', strtotime($row['fecha'])) ?></td>
                         
+                        <td class="text-nowrap text-success fw-bold">
+                            <?= !empty($row['fecha_ejecucion']) ? date('d/m/Y', strtotime($row['fecha_ejecucion'])) : '<span class="text-muted small">No definida</span>' ?>
+                        </td>
+
                         <td class="wrap-text" style="min-width: 200px;"><?= htmlspecialchars($row['depto_nombre']) ?></td>
                         <td class="wrap-text" style="min-width: 250px;"><?= htmlspecialchars($row['obj_desc']) ?></td>
                         <td class="wrap-text" style="min-width: 250px;"><?= htmlspecialchars($row['act_desc']) ?></td>
@@ -231,7 +236,7 @@ try {
                     </tr>
                     <?php endforeach; ?>
                 <?php else: ?>
-                    <tr><td colspan="10" class="text-muted py-4">No se encontraron reportes.</td></tr>
+                    <tr><td colspan="11" class="text-muted py-4">No se encontraron reportes.</td></tr>
                 <?php endif; ?>
             </tbody>
         </table>

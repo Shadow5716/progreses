@@ -23,19 +23,21 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['guardar_ipauma'])) {
     $obj_id = intval($_POST['objetivo_id']);
     $act_id = intval($_POST['actividad_id']);
     $parroquia = trim($_POST['parroquia']);
+    $fecha_ejecucion = !empty($_POST['fecha_ejecucion']) ? $_POST['fecha_ejecucion'] : null;
     $descripcion = trim($_POST['descripcion']);
     
     try {
-        // Se elimina el campo oficio de la consulta SQL como se solicitó
-        $insert = "INSERT INTO ipauma_solicitudes (departamento_id, objetivo_id, actividad_id, parroquia, descripcion, estado, fecha) 
-                   VALUES (:dep, :obj, :act, :parroquia, :desc, 'Pendiente', NOW())";
+        // Se elimina el campo oficio de la consulta SQL como se solicitó y se agrega fecha_ejecucion
+        $insert = "INSERT INTO ipauma_solicitudes (departamento_id, objetivo_id, actividad_id, parroquia, descripcion, estado, fecha, fecha_ejecucion) 
+                   VALUES (:dep, :obj, :act, :parroquia, :desc, 'Pendiente', NOW(), :fecha_ejecucion)";
         $stmt = $pdo->prepare($insert);
         $stmt->execute([
             ':dep' => $dep_id,
             ':obj' => $obj_id,
             ':act' => $act_id,
             ':parroquia' => $parroquia,
-            ':desc' => $descripcion
+            ':desc' => $descripcion,
+            ':fecha_ejecucion' => $fecha_ejecucion
         ]);
         
         // Ventana emergente (SweetAlert2)
@@ -123,7 +125,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['guardar_ipauma'])) {
             <form method="POST">
                 
                 <div class="row mb-3">
-                    <div class="col-md-12">
+                    <div class="col-md-6">
                         <label class="form-label fw-bold">Parroquia</label>
                         <select name="parroquia" class="form-select" required>
                             <option value="">-- Seleccione una Parroquia --</option>
@@ -146,6 +148,10 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['guardar_ipauma'])) {
                             <option value="SANTA LUCIA">SANTA LUCIA</option>
                             <option value="VENANCIO PULGAR">VENANCIO PULGAR</option>
                         </select>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label fw-bold">Fecha de Ejecución</label>
+                        <input type="date" name="fecha_ejecucion" class="form-control" required>
                     </div>
                 </div>
 
