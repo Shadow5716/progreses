@@ -5,19 +5,15 @@ require_once 'includes/dbconnection.php';
 $mensaje = '';
 
 try {
-    // Cargar Departamentos correctamente usando PDO
     $stmtDept = $pdo->query("SELECT * FROM ipauma_departamentos ORDER BY nombre ASC");
     $departamentos = $stmtDept->fetchAll(PDO::FETCH_ASSOC);
 
-    // NUEVO: Cargar todos los objetivos y actividades para el filtrado en JS (Igual que en editar.php)
     $objetivos_all = $pdo->query("SELECT * FROM ipauma_objetivos ORDER BY descripcion ASC")->fetchAll(PDO::FETCH_ASSOC);
     $actividades_all = $pdo->query("SELECT * FROM ipauma_actividades ORDER BY descripcion ASC")->fetchAll(PDO::FETCH_ASSOC);
-
 } catch (PDOException $e) {
     die("Error al cargar datos: Verifique que las tablas existan. " . $e->getMessage());
 }
 
-// Procesar guardado
 if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['guardar_ipauma'])) {
     $dep_id = intval($_POST['departamento_id']);
     $obj_id = intval($_POST['objetivo_id']);
@@ -27,7 +23,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['guardar_ipauma'])) {
     $descripcion = trim($_POST['descripcion']);
     
     try {
-        // Se elimina el campo oficio de la consulta SQL como se solicitó y se agrega fecha_ejecucion
+        $pdo->beginTransaction();
+
         $insert = "INSERT INTO ipauma_solicitudes (departamento_id, objetivo_id, actividad_id, parroquia, descripcion, estado, fecha, fecha_ejecucion) 
                    VALUES (:dep, :obj, :act, :parroquia, :desc, 'Pendiente', NOW(), :fecha_ejecucion)";
         $stmt = $pdo->prepare($insert);
@@ -40,7 +37,31 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['guardar_ipauma'])) {
             ':fecha_ejecucion' => $fecha_ejecucion
         ]);
         
-        // Ventana emergente (SweetAlert2)
+        $solicitud_id = $pdo->lastInsertId();
+
+        // Procesamiento de Imágenes
+        if (!empty($_FILES['imagenes']['name'][0])) {
+            $uploadDir = 'uploads/ipauma/';
+            if (!is_dir($uploadDir)) {
+                mkdir($uploadDir, 0777, true);
+            }
+
+            foreach ($_FILES['imagenes']['tmp_name'] as $key => $tmp_name) {
+                if ($_FILES['imagenes']['error'][$key] === UPLOAD_ERR_OK) {
+                    $nombre_original = basename($_FILES['imagenes']['name'][$key]);
+                    $nombre_seguro = uniqid('img_') . '_' . preg_replace("/[^a-zA-Z0-9.-]/", "_", $nombre_original);
+                    $ruta_destino = $uploadDir . escapeshellcmd($nombre_seguro);
+                    
+                    if (move_uploaded_file($tmp_name, $ruta_destino)) {
+                        $stmtImg = $pdo->prepare("INSERT INTO ipauma_imagenes (solicitud_id, ruta_archivo, nombre_archivo) VALUES (?, ?, ?)");
+                        $stmtImg->execute([$solicitud_id, $ruta_destino, $nombre_original]);
+                    }
+                }
+            }
+        }
+
+        $pdo->commit();
+
         echo "<script src='https://cdn.jsdelivr.net/npm/sweetalert2@11'></script>";
         echo "<script>
                 window.onload = function() {
@@ -57,6 +78,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['guardar_ipauma'])) {
               </script>";
         exit;
     } catch (PDOException $e) {
+        $pdo->rollBack();
         $mensaje = "<div class='alert alert-danger'>Error al guardar: " . $e->getMessage() . "</div>";
     }
 }
@@ -72,15 +94,14 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['guardar_ipauma'])) {
     <style>
         body { background: linear-gradient(90deg, rgba(210, 0, 90, 1) 0%, rgba(22, 67, 119, 1) 100%) !important; }
         .form-container { background: white; padding: 30px; border-radius: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); margin-top: 40px; margin-bottom: 40px; }
+        .navbar-custom { border: 1px solid; border-top-left-radius: -50px; border-top-right-radius: 0; background: linear-gradient(90deg, rgba(210, 0, 90, 1) 0%, rgba(22, 67, 119, 1) 100%) !important; padding: 0.8rem 1rem; border-color: #000000; }
         
-        .navbar-custom {
-            border: 1px solid;
-            border-top-left-radius: -50px;
-            border-top-right-radius: 0;
-            background: linear-gradient(90deg, rgba(210, 0, 90, 1) 0%, rgba(22, 67, 119, 1) 100%) !important;
-            padding: 0.8rem 1rem; 
-            border-color: #000000;
-        }
+        /* Estilos del Dropzone */
+        .dropzone-area { border: 2px dashed #164377; background: #f8f9fa; cursor: pointer; transition: 0.3s; padding: 30px; border-radius: 8px; text-align: center; }
+        .dropzone-area.dragover { background: #e9ecef; border-color: #d2005a; }
+        .img-preview { position: relative; width: 100px; height: 100px; overflow: hidden; border-radius: 5px; box-shadow: 0 2px 5px rgba(0,0,0,0.2); }
+        .img-preview img { width: 100%; height: 100%; object-fit: cover; }
+        .img-remove { position: absolute; top: 2px; right: 2px; background: rgba(255,0,0,0.8); color: white; border: none; border-radius: 50%; width: 22px; height: 22px; font-size: 12px; display: flex; align-items: center; justify-content: center; cursor: pointer; }
     </style>
 </head>
 <body>
@@ -94,23 +115,9 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['guardar_ipauma'])) {
                 <small class="text-white-50">IPAUPMA</small>
             </div>
         </a>
-        
         <div class="collapse navbar-collapse" id="navbarContent">
             <ul class="navbar-nav ms-auto align-items-center">
-                <li class="nav-item me-2">
-                    <a href="dashboard.php" class="btn btn-outline-light border-0"><i class="bi bi-house me-1"></i> Volver a Gestión</a>
-                </li>
-                <li class="nav-item dropdown me-2">
-                    <button class="btn btn-outline-light border-0 dropdown-toggle" type="button" data-bs-toggle="dropdown">
-                        <i class="bi bi-pie-chart me-1"></i> Estadísticas
-                    </button>
-                    <ul class="dropdown-menu dropdown-menu-end shadow">
-                        <li><a class="dropdown-item" href="ipauma_estadisticas.php?tipo=departamentos"><i class="bi bi-building me-2 text-primary"></i> Departamentos</a></li>
-                        <li><a class="dropdown-item" href="ipauma_estadisticas.php?tipo=objetivos"><i class="bi bi-bullseye me-2 text-danger"></i> Objetivos</a></li>
-                        <li><a class="dropdown-item" href="ipauma_estadisticas.php?tipo=actividades"><i class="bi bi-list-task me-2 text-success"></i> Actividades</a></li>
-                        <li><a class="dropdown-item" href="ipauma_estadisticas.php?tipo=parroquias"><i class="bi bi-map me-2 text-info"></i> Parroquias</a></li>
-                    </ul>
-                </li>
+                <li class="nav-item me-2"><a href="dashboard.php" class="btn btn-outline-light border-0"><i class="bi bi-house me-1"></i> Volver a Gestión</a></li>
             </ul>
         </div>
     </div>
@@ -122,7 +129,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['guardar_ipauma'])) {
             <h3 class="mb-4 text-center fw-bold text-primary">Registrar Nuevo Reporte IPAUPMA</h3>
             <?= $mensaje ?>
             
-            <form method="POST">
+            <form method="POST" enctype="multipart/form-data">
                 
                 <div class="row mb-3">
                     <div class="col-md-6">
@@ -170,7 +177,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['guardar_ipauma'])) {
                     <select id="objetivo_id" name="objetivo_id" class="form-select" required disabled>
                         <option value="">-- Primero seleccione un departamento --</option>
                     </select>
-                    <small class="text-muted"><i class="bi bi-info-circle me-1"></i>Las opciones se habilitarán al elegir el Departamento.</small>
                 </div>
 
                 <div class="mb-3">
@@ -178,12 +184,21 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['guardar_ipauma'])) {
                     <select id="actividad_id" name="actividad_id" class="form-select" required disabled>
                         <option value="">-- Primero seleccione un objetivo --</option>
                     </select>
-                    <small class="text-muted"><i class="bi bi-info-circle me-1"></i>Las opciones se habilitarán al elegir el Objetivo.</small>
                 </div>
 
                 <div class="mb-4">
                     <label class="form-label fw-bold">Descripción del Reporte</label>
                     <textarea name="descripcion" class="form-control" rows="4" placeholder="Detalle la solicitud o el problema..." required></textarea>
+                </div>
+
+                <div class="mb-4">
+                    <label class="form-label fw-bold">Imágenes de Respaldo</label>
+                    <div id="dropzone" class="dropzone-area">
+                        <i class="bi bi-images display-4 text-secondary"></i>
+                        <p class="mt-2 mb-0 text-muted">Haz clic, arrastra imágenes aquí o presiona Ctrl+V para pegar</p>
+                        <input type="file" id="fileInput" name="imagenes[]" accept="image/*" multiple class="d-none">
+                    </div>
+                    <div id="preview-container" class="d-flex flex-wrap gap-2 mt-3"></div>
                 </div>
 
                 <div class="d-flex justify-content-between">
@@ -197,7 +212,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['guardar_ipauma'])) {
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script>
-// Convertimos los datos de PHP a JSON para manejarlos localmente sin peticiones externas
+// Lógica de Selects Dinámicos
 const objetivosBase = <?= json_encode($objetivos_all) ?>;
 const actividadesBase = <?= json_encode($actividades_all) ?>;
 
@@ -205,49 +220,93 @@ document.getElementById('departamento_id').addEventListener('change', function()
     let dep_id = this.value;
     let objSelect = document.getElementById('objetivo_id');
     let actSelect = document.getElementById('actividad_id');
-    
-    // Reiniciar selectores
     objSelect.innerHTML = '<option value="">-- Seleccione un Objetivo --</option>';
     actSelect.innerHTML = '<option value="">-- Primero seleccione un objetivo --</option>';
     actSelect.disabled = true;
-
     if(dep_id) {
-        // Filtrar objetivos localmente
-        const filtrados = objetivosBase.filter(o => o.departamento_id == dep_id);
-        filtrados.forEach(o => {
-            const option = document.createElement('option');
-            option.value = o.id;
-            option.textContent = o.descripcion;
-            objSelect.appendChild(option);
+        objetivosBase.filter(o => o.departamento_id == dep_id).forEach(o => {
+            const option = document.createElement('option'); option.value = o.id; option.textContent = o.descripcion; objSelect.appendChild(option);
         });
         objSelect.disabled = false;
-    } else {
-        objSelect.innerHTML = '<option value="">-- Primero seleccione un departamento --</option>';
-        objSelect.disabled = true;
-    }
+    } else { objSelect.disabled = true; }
 });
 
 document.getElementById('objetivo_id').addEventListener('change', function() {
     let obj_id = this.value;
     let actSelect = document.getElementById('actividad_id');
-    
     actSelect.innerHTML = '<option value="">-- Seleccione una Actividad --</option>';
-
     if(obj_id) {
-        // Filtrar actividades localmente
-        const filtrados = actividadesBase.filter(a => a.objetivo_id == obj_id);
-        filtrados.forEach(a => {
-            const option = document.createElement('option');
-            option.value = a.id;
-            option.textContent = a.descripcion;
-            actSelect.appendChild(option);
+        actividadesBase.filter(a => a.objetivo_id == obj_id).forEach(a => {
+            const option = document.createElement('option'); option.value = a.id; option.textContent = a.descripcion; actSelect.appendChild(option);
         });
         actSelect.disabled = false;
-    } else {
-        actSelect.innerHTML = '<option value="">-- Primero seleccione un objetivo --</option>';
-        actSelect.disabled = true;
+    } else { actSelect.disabled = true; }
+});
+
+// Lógica de Imágenes (Drag, Drop, Paste, Select)
+const dropzone = document.getElementById('dropzone');
+const fileInput = document.getElementById('fileInput');
+const previewContainer = document.getElementById('preview-container');
+let currentFiles = new DataTransfer();
+
+dropzone.addEventListener('click', () => fileInput.click());
+
+dropzone.addEventListener('dragover', (e) => {
+    e.preventDefault();
+    dropzone.classList.add('dragover');
+});
+
+dropzone.addEventListener('dragleave', () => dropzone.classList.remove('dragover'));
+
+dropzone.addEventListener('drop', (e) => {
+    e.preventDefault();
+    dropzone.classList.remove('dragover');
+    handleFiles(e.dataTransfer.files);
+});
+
+// Evita que la foto se pegue si estás escribiendo dentro de la caja de descripción
+document.addEventListener('paste', (e) => {
+    if (e.target.nodeName === 'TEXTAREA' || e.target.nodeName === 'INPUT') return;
+    if(e.clipboardData.files.length > 0) {
+        handleFiles(e.clipboardData.files);
     }
 });
+
+fileInput.addEventListener('change', () => handleFiles(fileInput.files));
+
+function handleFiles(files) {
+    Array.from(files).forEach(file => {
+        if(file.type.startsWith('image/')) {
+            currentFiles.items.add(file);
+            renderPreview(file);
+        }
+    });
+    fileInput.files = currentFiles.files; 
+}
+
+function renderPreview(file) {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+        const div = document.createElement('div');
+        div.className = 'img-preview';
+        div.innerHTML = `
+            <img src="${e.target.result}" alt="Preview">
+            <button type="button" class="img-remove" onclick="removeFile(this, '${file.name}')"><i class="bi bi-x"></i></button>
+        `;
+        previewContainer.appendChild(div);
+    };
+    reader.readAsDataURL(file);
+}
+
+window.removeFile = function(btn, fileName) {
+    const newDt = new DataTransfer();
+    Array.from(currentFiles.files).forEach(file => {
+        if(file.name !== fileName) newDt.items.add(file);
+    });
+    currentFiles = newDt;
+    fileInput.files = currentFiles.files;
+    btn.parentElement.remove();
+}
 </script>
 </body>
 </html>

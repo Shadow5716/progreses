@@ -11,7 +11,6 @@ $where_sql = "1=1";
 $params = [];
 
 if ($busqueda != '') {
-    // CORRECCIÓN: Usar variables de parámetro separadas para evitar el error SQLSTATE[HY093] de PDO
     $where_sql .= " AND (s.id LIKE :b1 OR s.fecha LIKE :b2 OR d.nombre LIKE :b3 OR o.descripcion LIKE :b4 OR a.descripcion LIKE :b5 OR s.parroquia LIKE :b6)";
     $termino = "%$busqueda%";
     $params[':b1'] = $termino;
@@ -27,7 +26,7 @@ if ($estado_filtro != '') {
 }
 
 try {
-    // 1. Tarjetas de Conteo (Estadísticas Globales)
+    // 1. Tarjetas de Conteo
     $totales = $pdo->query("SELECT COUNT(*) FROM ipauma_solicitudes")->fetchColumn();
     $pendientes = $pdo->query("SELECT COUNT(*) FROM ipauma_solicitudes WHERE estado = 'Pendiente'")->fetchColumn();
     $proceso = $pdo->query("SELECT COUNT(*) FROM ipauma_solicitudes WHERE estado = 'En Proceso'")->fetchColumn();
@@ -69,12 +68,14 @@ try {
         .card-proceso { background-color: #ffffff; color: #000; }
         .card-resuelto { background-color: #ffffff; color: #000; }
         .table-container { background: white; padding: 20px; border-radius: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
-        /* Nuevos estilos para forzar el ajuste de texto hacia abajo */
         .wrap-text {
             white-space: normal !important;
             word-wrap: break-word;
             text-align: left;
         }
+        /* Estilos galería modal */
+        .img-gallery { max-width: 100%; height: 120px; object-fit: cover; border-radius: 5px; cursor: pointer; border: 2px solid transparent; transition: 0.3s; }
+        .img-gallery:hover { border-color: #d2005a; opacity: 0.8; }
     </style>
 </head>
 <body>
@@ -114,30 +115,10 @@ try {
     <h2 class="mb-4 fw-bold">Historial de Reportes IPAUPMA</h2>
 
     <div class="row mb-4">
-        <div class="col-md-3">
-            <div class="stat-card card-total">
-                <h5>Total de Reportes</h5>
-                <h2 class="mb-0 fw-bold"><?= $totales ?></h2>
-            </div>
-        </div>
-        <div class="col-md-3">
-            <div class="stat-card card-pendiente">
-                <h5>Pendientes</h5>
-                <h2 class="mb-0 fw-bold"><?= $pendientes ?></h2>
-            </div>
-        </div>
-        <div class="col-md-3">
-            <div class="stat-card card-proceso">
-                <h5>En Proceso</h5>
-                <h2 class="mb-0 fw-bold"><?= $proceso ?></h2>
-            </div>
-        </div>
-        <div class="col-md-3">
-            <div class="stat-card card-resuelto">
-                <h5>Resueltos</h5>
-                <h2 class="mb-0 fw-bold"><?= $resueltos ?></h2>
-            </div>
-        </div>
+        <div class="col-md-3"><div class="stat-card card-total"><h5>Total de Reportes</h5><h2 class="mb-0 fw-bold"><?= $totales ?></h2></div></div>
+        <div class="col-md-3"><div class="stat-card card-pendiente"><h5>Pendientes</h5><h2 class="mb-0 fw-bold"><?= $pendientes ?></h2></div></div>
+        <div class="col-md-3"><div class="stat-card card-proceso"><h5>En Proceso</h5><h2 class="mb-0 fw-bold"><?= $proceso ?></h2></div></div>
+        <div class="col-md-3"><div class="stat-card card-resuelto"><h5>Resueltos</h5><h2 class="mb-0 fw-bold"><?= $resueltos ?></h2></div></div>
     </div>
 
     <div class="d-flex justify-content-between flex-wrap gap-2 mb-3">
@@ -216,18 +197,15 @@ try {
                         <td class="wrap-text" style="min-width: 250px;"><?= htmlspecialchars($row['descripcion']) ?></td>
                         
                         <td class="text-nowrap">
-                            <?php 
-                                $badgeColor = $row['estado'] == 'Resuelto' ? 'bg-success' : ($row['estado'] == 'En Proceso' ? 'bg-warning text-dark' : 'bg-danger');
-                            ?>
+                            <?php $badgeColor = $row['estado'] == 'Resuelto' ? 'bg-success' : ($row['estado'] == 'En Proceso' ? 'bg-warning text-dark' : 'bg-danger'); ?>
                             <span class="badge <?= $badgeColor ?>"><?= htmlspecialchars($row['estado']) ?></span>
                         </td>
                         <td class="text-nowrap">
                             <div class="dropdown">
-                                <button class="btn btn-sm btn-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown">
-                                    Opciones
-                                </button>
+                                <button class="btn btn-sm btn-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown">Opciones</button>
                                 <ul class="dropdown-menu">
                                     <li><a class="dropdown-item text-primary" href="ipauma_editar.php?id=<?= $row['id'] ?>"><i class="bi bi-eye"></i> Ver / Editar</a></li>
+                                    <li><button class="dropdown-item text-success" onclick="abrirModalImagenes(<?= $row['id'] ?>)"><i class="bi bi-images"></i> Ver Imágenes</button></li>
                                     <li><hr class="dropdown-divider"></li>
                                     <li><a class="dropdown-item text-danger" href="ipauma_eliminar.php?id=<?= $row['id'] ?>" onclick="return confirm('¿Estás seguro de eliminar este reporte?');"><i class="bi bi-trash"></i> Eliminar</a></li>
                                 </ul>
@@ -241,6 +219,33 @@ try {
             </tbody>
         </table>
     </div>
+</div>
+
+<div class="modal fade" id="modalImagenes" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header bg-dark text-white">
+        <h5 class="modal-title"><i class="bi bi-images me-2"></i>Imágenes del Reporte #<span id="modalReporteId"></span></h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+          <form id="formDescargaImagenes" method="POST" action="ipauma_descargar_imagenes.php">
+              <input type="hidden" name="solicitud_id" id="descargaSolicitudId" value="">
+              
+              <div class="d-flex justify-content-between mb-3" id="botonesDescarga" style="display:none !important;">
+                  <button type="button" class="btn btn-outline-primary" onclick="seleccionarTodasModal()"><i class="bi bi-check-all"></i> Seleccionar Todas</button>
+                  <div>
+                      <button type="button" class="btn btn-success me-2" onclick="descargarSeleccionadasModal()"><i class="bi bi-file-earmark-zip"></i> Descargar Seleccionadas</button>
+                      <button type="submit" class="btn btn-dark"><i class="bi bi-cloud-arrow-down"></i> Descargar Todo</button>
+                  </div>
+              </div>
+
+              <div class="row g-3" id="contenedorImagenesModal">
+                  </div>
+          </form>
+      </div>
+    </div>
+  </div>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
@@ -261,6 +266,67 @@ try {
         checkboxes.forEach(cb => ids.push(cb.value));
         document.getElementById('input_ids_seleccionados').value = ids.join(',');
         document.getElementById('formExportarSelected').submit();
+    }
+
+    const modalImagenes = new bootstrap.Modal(document.getElementById('modalImagenes'));
+
+    function abrirModalImagenes(id) {
+        document.getElementById('modalReporteId').textContent = id;
+        document.getElementById('descargaSolicitudId').value = id;
+        const contenedor = document.getElementById('contenedorImagenesModal');
+        const botonesDescarga = document.getElementById('botonesDescarga');
+        contenedor.innerHTML = '<div class="col-12 text-center py-4"><div class="spinner-border text-primary" role="status"></div><p class="mt-2">Cargando imágenes...</p></div>';
+        
+        modalImagenes.show();
+
+        fetch(`ipauma_get_imagenes.php?id=${id}`)
+            .then(res => res.json())
+            .then(data => {
+                contenedor.innerHTML = '';
+                if(data.length > 0) {
+                    botonesDescarga.style.setProperty('display', 'flex', 'important');
+                    data.forEach(img => {
+                        contenedor.innerHTML += `
+                            <div class="col-md-4 text-center">
+                                <div class="card p-2 border-0 shadow-sm">
+                                    <a href="${img.ruta_archivo}" target="_blank">
+                                        <img src="${img.ruta_archivo}" class="img-gallery w-100 mb-2">
+                                    </a>
+                                    <label class="form-check-label w-100 text-start ps-1 bg-light rounded p-1">
+                                        <input type="checkbox" name="img_ids[]" value="${img.id}" class="form-check-input me-1 modal-img-checkbox"> 
+                                        <small class="text-truncate d-inline-block" style="max-width: 80%; vertical-align: bottom;">${img.nombre_archivo}</small>
+                                    </label>
+                                </div>
+                            </div>
+                        `;
+                    });
+                } else {
+                    botonesDescarga.style.setProperty('display', 'none', 'important');
+                    contenedor.innerHTML = '<div class="col-12 text-center text-muted py-4"><i class="bi bi-camera-video-off display-4"></i><p class="mt-3">No hay imágenes vinculadas a este reporte.</p></div>';
+                }
+            }).catch(err => {
+                contenedor.innerHTML = '<div class="col-12 text-danger text-center">Error al cargar las imágenes.</div>';
+            });
+    }
+
+    function seleccionarTodasModal() {
+        const checkboxes = document.querySelectorAll('.modal-img-checkbox');
+        let allChecked = true;
+        checkboxes.forEach(cb => { if(!cb.checked) allChecked = false; });
+        checkboxes.forEach(cb => cb.checked = !allChecked);
+    }
+
+    function descargarSeleccionadasModal() {
+        const checkboxes = document.querySelectorAll('.modal-img-checkbox:checked');
+        if(checkboxes.length === 0) {
+            alert("Por favor, seleccione al menos una imagen para descargar.");
+            return;
+        }
+        // Limpiamos el ID general para que se enfoque en los individuales
+        document.getElementById('descargaSolicitudId').value = ''; 
+        document.getElementById('formDescargaImagenes').submit();
+        // Restauramos el ID por si luego presiona "Descargar todo"
+        document.getElementById('descargaSolicitudId').value = document.getElementById('modalReporteId').textContent;
     }
 </script>
 </body>
