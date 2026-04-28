@@ -30,22 +30,6 @@
         background-color: #3e8a75 !important;
     }
 
-    /* Estilo específico para el botón de IPAUMA */
-    .btn-ipauma {
-        background-color: #28a745 !important;
-        color: white !important;
-        border-radius: 8px;
-        font-weight: 600;
-        border: none;
-        transition: all 0.3s ease;
-    }
-
-    .btn-ipauma:hover {
-        background-color: #218838 !important;
-        transform: translateY(-1px);
-        box-shadow: 0 4px 8px rgba(0,0,0,0.2);
-    }
-
     .user-avatar-circle {
         width: 40px;
         height: 40px;
@@ -73,13 +57,6 @@
                     <a href="nueva_solicitud.php" class="btn btn-solicitud me-2 shadow-sm">
                         <i class="bi bi-plus-lg me-2"></i>Nueva Solicitud
                     </a>
-
-                <li class="nav-item me-2">
-                    <a href="ipauma_dashboard.php" class="btn btn-ipauma shadow-sm d-flex align-items-center">
-                        <i class="bi bi-bank2 me-2"></i>
-                        <span>Entrar a IPAUPMA</span>
-                    </a>
-                </li>
 
                 <div class="dropdown">
                     <button class="btn btn-outline-primary dropdown-toggle shadow-sm fw-bold" type="button" id="dropdownGraficas" data-bs-toggle="dropdown" aria-expanded="false" style="border-width: 2px; border-radius: 8px;">

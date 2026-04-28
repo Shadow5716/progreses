@@ -1,44 +1,67 @@
 <?php
 session_start();
-include('includes/dbconnection.php');
+require_once 'includes/dbconnection.php';
 
 if (isset($_POST['login'])) {
-    $user = $_POST['usuario']; 
-    $pass = $_POST['contraseña']; 
+    $usuario = trim($_POST['usuario']);
+    $password = trim($_POST['contraseña']);
+    $modulo_solicitado = $_POST['modulo_solicitado']; // 'proreges', 'ipauma' o 'imtcuma'
 
     try {
-        // AÑADIDO: AdminName en el SELECT
-        $sql = "SELECT ID, UserName, AdminName, Password FROM tbladmin WHERE UserName = :u AND Password = :p AND Estado = 'Habilitada' LIMIT 1";
-        $stmt = $pdo->prepare($sql);
-        $stmt->execute(['u' => $user, 'p' => $pass]);
-        $admin = $stmt->fetch(PDO::FETCH_ASSOC);
+        // Buscamos al usuario en la base de datos
+        $stmt = $pdo->prepare("SELECT * FROM usuarios_sistema WHERE usuario = :usuario");
+        $stmt->bindParam(':usuario', $usuario);
+        $stmt->execute();
+        $user = $stmt->fetch(PDO::FETCH_ASSOC);
 
-        if ($admin) {
-            $_SESSION['adminid'] = $admin['ID'];
-            $_SESSION['usuario'] = $admin['UserName'];
-            // CLAVE: Guardamos el nombre real para el Navbar
-            $_SESSION['AdminName'] = $admin['AdminName']; 
-            $_SESSION['autentificado'] = true;
+        // Verificamos si existe y si la contraseña coincide (Se usa comparación directa por ahora como solicitaste: 'sportman')
+        if ($user && $user['password'] === $password) {
+            
+            // Verificamos permisos según el módulo o si es Master
+            $tiene_permiso = false;
+            
+            if ($user['rol'] === 'Master') {
+                $tiene_permiso = true;
+            } else {
+                // Chequear el permiso específico del módulo
+                if ($modulo_solicitado == 'proreges' && $user['acceso_proreges'] == 1) $tiene_permiso = true;
+                if ($modulo_solicitado == 'ipauma' && $user['acceso_ipauma'] == 1) $tiene_permiso = true;
+                if ($modulo_solicitado == 'imtcuma' && $user['acceso_imtcuma'] == 1) $tiene_permiso = true;
+            }
 
-            $update = "UPDATE tbladmin SET LastLogin = NOW() WHERE ID = ?";
-            $pdo->prepare($update)->execute([$admin['ID']]);
+            if ($tiene_permiso) {
+                // Credenciales correctas y permiso concedido
+                $_SESSION['autentificado'] = true;
+                $_SESSION['AdminName'] = $user['nombre_completo'];
+                $_SESSION['rol'] = $user['rol'];
+                $_SESSION['modulo_activo'] = $modulo_solicitado;
+                $_SESSION['usuario_id'] = $user['id']; // Útil para cuando vayan a cambiar la contraseña
 
-            header("Location: dashboard.php"); // Asegúrate de que apunte a tu dashboard
-            exit;
+                // Redirección según el módulo
+                switch ($modulo_solicitado) {
+                    case 'ipauma':
+                        header("Location: ipauma_dashboard.php");
+                        break;
+                    case 'imtcuma':
+                        header("Location: imtcuma_dashboard.php");
+                        break;
+                    default:
+                        header("Location: dashboard.php");
+                        break;
+                }
+                exit;
+            } else {
+                echo "<script>alert('No tienes permisos para acceder al módulo: ". strtoupper($modulo_solicitado) ."'); window.location.href='index.php?modulo=".$modulo_solicitado."';</script>";
+            }
+
         } else {
-            echo "<script>alert('Usuario o Clave incorrectos.'); window.location='index.php';</script>";
+            echo "<script>alert('Usuario o Contraseña incorrectos.'); window.location.href='index.php?modulo=".$modulo_solicitado."';</script>";
         }
     } catch (PDOException $e) {
-        die("Error crítico: " . $e->getMessage());
+        die("Error de conexión: " . $e->getMessage());
     }
+} else {
+    header("Location: index.php");
+    exit;
 }
 ?>
-
-
-
-
-
-
-
-
-

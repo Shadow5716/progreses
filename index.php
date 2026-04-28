@@ -1,11 +1,34 @@
 <?php
-// index.php - Pantalla de Inicio de Sesión PROREGES
+// index.php - Pantalla de Inicio de Sesión Multi-Módulo
 session_start();
 error_reporting(E_ALL);
 require_once 'includes/dbconnection.php';
 
-// Si ya hay una sesión activa, saltar el login e ir al dashboard
+// Control del módulo a través de GET (Por defecto PROREGES)
+$modulo_seleccionado = isset($_GET['modulo']) ? $_GET['modulo'] : 'proreges';
+
+// Configuración visual según el módulo seleccionado
+$config_modulos = [
+    'proreges' => ['titulo' => 'PROREGES', 'sub' => 'Programa de Reportes de Gestión', 'color' => '#164377', 'btn_color' => '#198754'],
+    'ipauma' => ['titulo' => 'Módulo IPAUPMA', 'sub' => 'Gestión de Solicitudes', 'color' => '#198754', 'btn_color' => '#164377'],
+    'imtcuma' => ['titulo' => 'Módulo IMTCUMA', 'sub' => 'Registro de Transporte Público', 'color' => '#fdb813', 'btn_color' => '#212529']
+];
+
+// Validar que el módulo exista en nuestra lista, si no, devolver a proreges
+if (!array_key_exists($modulo_seleccionado, $config_modulos)) {
+    $modulo_seleccionado = 'proreges';
+}
+$modulo_actual = $config_modulos[$modulo_seleccionado];
+
+// Si ya hay una sesión activa, redirigir al dashboard de su módulo actual
 if (isset($_SESSION['autentificado']) && $_SESSION['autentificado'] == true) {
+    if (isset($_SESSION['modulo_activo'])) {
+        switch ($_SESSION['modulo_activo']) {
+            case 'ipauma': header('location:ipauma_dashboard.php'); exit;
+            case 'imtcuma': header('location:imtcuma_dashboard.php'); exit;
+            default: header('location:dashboard.php'); exit;
+        }
+    }
     header('location:dashboard.php');
     exit;
 }
@@ -15,7 +38,7 @@ if (isset($_SESSION['autentificado']) && $_SESSION['autentificado'] == true) {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PROREGES - Acceso al Sistema</title>
+    <title><?= $modulo_actual['titulo'] ?> - Acceso al Sistema</title>
     
     <link rel="shortcut icon" type="image/x-icon" href="imagenes/iconito.ico?v=1.1" />
     <link rel="icon" type="image/x-icon" href="imagenes/iconito.ico?v=1.1" />
@@ -33,7 +56,6 @@ if (isset($_SESSION['autentificado']) && $_SESSION['autentificado'] == true) {
 
         body {
             font-family: 'Public Sans', sans-serif;
-            /* Usamos la imagen de fondo que tenías en el segundo código */
             background: linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.6)), url('imagenes/muro2.png');
             background-size: cover;
             background-position: center;
@@ -43,6 +65,15 @@ if (isset($_SESSION['autentificado']) && $_SESSION['autentificado'] == true) {
             align-items: center;
             justify-content: center;
             margin: 0;
+            position: relative;
+        }
+
+        /* Botón selector de módulo arriba a la derecha */
+        .selector-modulo {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            z-index: 1000;
         }
 
         .login-container {
@@ -60,10 +91,17 @@ if (isset($_SESSION['autentificado']) && $_SESSION['autentificado'] == true) {
         }
 
         .card-header-login {
-            background-color: var(--blue-maracaibo);
+            background-color: <?= $modulo_actual['color'] ?>;
             border-bottom: 5px solid var(--yellow-maracaibo);
             padding: 30px 20px;
             text-align: center;
+            transition: background-color 0.3s ease;
+        }
+
+        /* Ajuste de color de texto si el fondo es amarillo (IMTCUMA) */
+        .card-header-login .system-title, 
+        .card-header-login .text-sub {
+            color: <?= $modulo_seleccionado == 'imtcuma' ? '#000' : '#fff' ?> !important;
         }
 
         .logo-login {
@@ -73,7 +111,6 @@ if (isset($_SESSION['autentificado']) && $_SESSION['autentificado'] == true) {
         }
 
         .system-title {
-            color: white;
             font-weight: 700;
             font-size: 1.4rem;
             margin: 0;
@@ -81,7 +118,7 @@ if (isset($_SESSION['autentificado']) && $_SESSION['autentificado'] == true) {
         }
 
         .btn-login {
-            background-color: #198754; /* Verde del segundo código */
+            background-color: <?= $modulo_actual['btn_color'] ?>;
             border: none;
             padding: 12px;
             font-weight: 600;
@@ -90,9 +127,9 @@ if (isset($_SESSION['autentificado']) && $_SESSION['autentificado'] == true) {
         }
 
         .btn-login:hover {
-            background-color: #146c43;
+            opacity: 0.9;
             transform: translateY(-1px);
-            box-shadow: 0 5px 15px rgba(25, 135, 84, 0.3);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
             color: white;
         }
 
@@ -114,16 +151,29 @@ if (isset($_SESSION['autentificado']) && $_SESSION['autentificado'] == true) {
 </head>
 <body>
 
+    <div class="selector-modulo dropdown">
+        <button class="btn btn-outline-light dropdown-toggle bg-dark bg-opacity-50 fw-bold shadow" type="button" id="dropdownModulos" data-bs-toggle="dropdown" aria-expanded="false">
+            <i class="bi bi-grid-3x3-gap-fill me-2"></i>Cambiar Módulo
+        </button>
+        <ul class="dropdown-menu dropdown-menu-end shadow border-0" aria-labelledby="dropdownModulos">
+            <li><a class="dropdown-item py-2 fw-bold <?= $modulo_seleccionado == 'proreges' ? 'active' : '' ?>" href="index.php?modulo=proreges"><i class="bi bi-house-door me-2 text-primary"></i> PROREGES</a></li>
+            <li><a class="dropdown-item py-2 fw-bold <?= $modulo_seleccionado == 'ipauma' ? 'active' : '' ?>" href="index.php?modulo=ipauma"><i class="bi bi-bank2 me-2 text-success"></i> IPAUPMA</a></li>
+            <li><a class="dropdown-item py-2 fw-bold <?= $modulo_seleccionado == 'imtcuma' ? 'active' : '' ?>" href="index.php?modulo=imtcuma"><i class="bi bi-bus-front me-2 text-warning"></i> IMTCUMA</a></li>
+        </ul>
+    </div>
+
     <div class="login-container">
         <div class="card card-login">
             <div class="card-header-login">
                 <img src="imagenes/alcaldia-maracaibo.png" alt="Alcaldía de Maracaibo" class="logo-login">
-                <h1 class="system-title">PROREGES</h1>
-                <p class="text-white-50 small mb-0">Programa de Reportes de Gestión</p>
+                <h1 class="system-title"><?= $modulo_actual['titulo'] ?></h1>
+                <p class="text-sub small mb-0 fw-bold"><?= $modulo_actual['sub'] ?></p>
             </div>
             
             <div class="card-body p-4 p-md-5">
                 <form action="validacion.php" method="POST">
+                    <input type="hidden" name="modulo_solicitado" value="<?= $modulo_seleccionado ?>">
+
                     <div class="mb-3">
                         <label for="usuario" class="form-label text-muted small fw-bold">Usuario</label>
                         <div class="input-group">
